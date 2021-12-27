@@ -118,3 +118,7 @@ Wi-Fi 5G (@ 50mbps): 5 seconds
 4G LTE wireless (@ 30mbps): 10 seconds
 3G wireless (@ 25mbps): 30 seconds
 ```
+
+### Network Speeds
+
+TODO add up/down speed per interface
