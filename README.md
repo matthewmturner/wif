@@ -43,9 +43,10 @@ Name: large_video_file.mp4
 Format: mp4
 Size: 100mb
 
-Current location:
+Current location: New York, United States
+Target location: Virginia, United States
 
-Distance to us-e
+Distance to target: 400 miles
 
 Benchmarks
 Wi-Fi 2G (@ 20mbps): 20 seconds
