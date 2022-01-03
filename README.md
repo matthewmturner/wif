@@ -124,3 +124,4 @@ Wi-Fi 5G (@ 50mbps): 5 seconds
 TODO add up/down speed per interface
 TODO add tcp handshake impact
 TODO support s3
+TODO calibrate to support `speedtest`
