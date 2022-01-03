@@ -107,14 +107,14 @@ func getFileType(path string) string {
 	defer f.Close()
 
 	// Get the content
-	contentType, err := GetFileContentType(f)
+	contentType, err := getFileContentType(f)
 	if err != nil {
 		panic(err)
 	}
 	return contentType
 }
 
-func GetFileContentType(out *os.File) (string, error) {
+func getFileContentType(out *os.File) (string, error) {
 
 	// Only the first 512 bytes are used to sniff the content type.
 	buffer := make([]byte, 512)
