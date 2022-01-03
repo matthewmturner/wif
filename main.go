@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 Matthew Turner <matthew.m.turner@outlook.com>
 
 */
 package main
