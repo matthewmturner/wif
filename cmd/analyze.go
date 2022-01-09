@@ -19,7 +19,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// Source: https://www.tomsguide.com/features/5g-vs-4g
+// 5G and 4G Source: https://www.tomsguide.com/features/5g-vs-4g
 // Download speeds in Mbps, prefixed with "DOWN_"
 const DOWN_5G = 70_000_000
 const DOWN_4G = 40_000_000
@@ -29,6 +29,10 @@ const DOWN_4G = 40_000_000
 // Upload speeds in Mbps, prefiex with "UP_"
 const UP_5G = 10_000_000
 const UP_4G = 3_000_000
+
+// Ethernet Source: https://smallbusiness.chron.com/three-common-ethernet-speeds-69375.html
+const FAST_ETH = 100_000_000
+const GIGABIT_ETH = 1_000_000_000
 
 // analyzeCmd represents the analyze command
 var analyzeCmd = &cobra.Command{
@@ -132,11 +136,16 @@ func printFileInfo(fileStat fs.FileInfo, file string) {
 
 func printPerformanceResults(size int64) {
 	// Expected performance
+	fileSize := float32(size)
+
 	fmt.Println("\nExpected Network Speed Information")
-	fmt.Println("5G Download: ", float32(size)/(DOWN_5G/8), "seconds")
-	fmt.Println("4G Download: ", float32(size)/(DOWN_4G/8), "seconds")
-	fmt.Println("5G Upload: ", float32(size)/(UP_5G/8), "seconds")
-	fmt.Println("4G Upload: ", float32(size)/(UP_4G/8), "seconds")
+	fmt.Println("5G Download: ", fileSize/(DOWN_5G/8), "seconds")
+	fmt.Println("4G Download: ", fileSize/(DOWN_4G/8), "seconds")
+	fmt.Println("5G Upload: ", fileSize/(UP_5G/8), "seconds")
+	fmt.Println("4G Upload: ", fileSize/(UP_4G/8), "seconds")
+
+	fmt.Println("Fast Ethernet: ", fileSize/(FAST_ETH/8), "seconds")
+	fmt.Println("Gigabit Ethernet: ", fileSize/(GIGABIT_ETH/8), "seconds")
 }
 
 func printAnalyzeResults(fileStat fs.FileInfo, file string) {
@@ -186,7 +195,7 @@ func s3FileHandler(file string) {
 	}
 
 	fmt.Println("\nFile Information")
-	fmt.Println("File Name:", file)                                                       // Base name of the file
+	fmt.Println("File Name:", file)                                                       // Bucket and key name of the file
 	fmt.Println("File Type:", aws.ToString(meta.ContentType))                             // File type
 	fmt.Println("Size:", formatFileSize(meta.ContentLength))                              // Length in bytes for regular files
 	fmt.Println("Last Modified:", meta.LastModified.Format("January 2, 2006 3:04:05 PM")) // Last modification time
