@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 
@@ -41,9 +42,10 @@ File last modified - from 'fileStat'
 			fmt.Println("analyze accepts exactly 1 file path argument")
 			return
 		}
-		fileStat, err := os.Stat(args[0])
+		file := args[0]
+		fileStat, err := os.Stat(file)
 		if err != nil {
-			fmt.Printf("Unable to open file: %s\n", args[0])
+			fmt.Printf("Unable to open file: %s\n", file)
 			return
 		}
 		if fileStat.IsDir() {
@@ -51,21 +53,7 @@ File last modified - from 'fileStat'
 			return
 		}
 
-		size := fileStat.Size()
-
-		// File information
-		fmt.Println("File Information")
-		fmt.Println("File Name:", fileStat.Name())                                             // Base name of the file
-		fmt.Println("File Type:", getFileType(args[0]))                                        // File type
-		fmt.Println("Size:", formatFileSize(size))                                             // Length in bytes for regular files
-		fmt.Println("Last Modified:", fileStat.ModTime().Format("January 2, 2006 3:04:05 PM")) // Last modification time
-
-		// Expected performance
-		fmt.Println("\nExpected Network Speed Information")
-		fmt.Println("5G Download: ", float32(size)/(DOWN_5G/8), "seconds")
-		fmt.Println("4G Download: ", float32(size)/(DOWN_4G/8), "seconds")
-		fmt.Println("5G Upload: ", float32(size)/(UP_5G/8), "seconds")
-		fmt.Println("4G Upload: ", float32(size)/(UP_4G/8), "seconds")
+		printAnalyzeResults(fileStat, file)
 
 	},
 }
@@ -129,4 +117,23 @@ func getFileContentType(out *os.File) (string, error) {
 	contentType := http.DetectContentType(buffer)
 
 	return contentType, nil
+}
+
+func printAnalyzeResults(fileStat fs.FileInfo, file string) {
+
+	size := fileStat.Size()
+
+	// File information
+	fmt.Println("File Information")
+	fmt.Println("File Name:", fileStat.Name())                                             // Base name of the file
+	fmt.Println("File Type:", getFileType(file))                                           // File type
+	fmt.Println("Size:", formatFileSize(size))                                             // Length in bytes for regular files
+	fmt.Println("Last Modified:", fileStat.ModTime().Format("January 2, 2006 3:04:05 PM")) // Last modification time
+
+	// Expected performance
+	fmt.Println("\nExpected Network Speed Information")
+	fmt.Println("5G Download: ", float32(size)/(DOWN_5G/8), "seconds")
+	fmt.Println("4G Download: ", float32(size)/(DOWN_4G/8), "seconds")
+	fmt.Println("5G Upload: ", float32(size)/(UP_5G/8), "seconds")
+	fmt.Println("4G Upload: ", float32(size)/(UP_4G/8), "seconds")
 }
