@@ -119,21 +119,31 @@ func getFileContentType(out *os.File) (string, error) {
 	return contentType, nil
 }
 
-func printAnalyzeResults(fileStat fs.FileInfo, file string) {
-
+func printFileInfo(fileStat fs.FileInfo, file string) {
 	size := fileStat.Size()
 
 	// File information
-	fmt.Println("File Information")
+	fmt.Println("\nFile Information")
 	fmt.Println("File Name:", fileStat.Name())                                             // Base name of the file
 	fmt.Println("File Type:", getFileType(file))                                           // File type
 	fmt.Println("Size:", formatFileSize(size))                                             // Length in bytes for regular files
 	fmt.Println("Last Modified:", fileStat.ModTime().Format("January 2, 2006 3:04:05 PM")) // Last modification time
+}
 
+func printPerformanceResults(size int64) {
 	// Expected performance
 	fmt.Println("\nExpected Network Speed Information")
 	fmt.Println("5G Download: ", float32(size)/(DOWN_5G/8), "seconds")
 	fmt.Println("4G Download: ", float32(size)/(DOWN_4G/8), "seconds")
 	fmt.Println("5G Upload: ", float32(size)/(UP_5G/8), "seconds")
 	fmt.Println("4G Upload: ", float32(size)/(UP_4G/8), "seconds")
+}
+
+func printAnalyzeResults(fileStat fs.FileInfo, file string) {
+
+	size := fileStat.Size()
+
+	printFileInfo(fileStat, file)
+	printPerformanceResults(size)
+
 }
