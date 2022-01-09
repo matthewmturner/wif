@@ -5,11 +5,17 @@ Copyright © 2021 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
+	"log"
 	"net/http"
 	"os"
+	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/spf13/cobra"
 )
 
@@ -43,18 +49,12 @@ File last modified - from 'fileStat'
 			return
 		}
 		file := args[0]
-		fileStat, err := os.Stat(file)
-		if err != nil {
-			fmt.Printf("Unable to open file: %s\n", file)
-			return
-		}
-		if fileStat.IsDir() {
-			fmt.Printf("Analyze only accepts file paths, not directories")
-			return
-		}
 
-		printAnalyzeResults(fileStat, file)
-
+		if file[0:2] == "s3" {
+			s3FileHandler(file)
+		} else {
+			localFileHandler(file)
+		}
 	},
 }
 
@@ -145,5 +145,52 @@ func printAnalyzeResults(fileStat fs.FileInfo, file string) {
 
 	printFileInfo(fileStat, file)
 	printPerformanceResults(size)
+
+}
+
+func localFileHandler(file string) {
+
+	fileStat, err := os.Stat(file)
+	if err != nil {
+		fmt.Printf("Unable to open file: %s\n", file)
+		return
+	}
+	if fileStat.IsDir() {
+		fmt.Printf("Analyze only accepts file paths, not directories")
+		return
+	}
+
+	printAnalyzeResults(fileStat, file)
+}
+
+func s3FileHandler(file string) {
+
+	ctx := context.TODO()
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		log.Fatalf("failed to load SDK configuration, %v", err)
+	}
+
+	client := s3.NewFromConfig(cfg)
+
+	bucket_start := 5 // After s3://
+	bucket_length := strings.Index(file[bucket_start:], "/")
+	bucket := file[bucket_start : bucket_start+bucket_length]
+	key := file[bucket_start+bucket_length+1:]
+
+	input := &s3.HeadObjectInput{Bucket: &bucket, Key: &key}
+	meta, err := client.HeadObject(ctx, input)
+	if err != nil {
+		fmt.Printf("Unable to get HeadObject from file: %s\n", file)
+		return
+	}
+
+	fmt.Println("\nFile Information")
+	fmt.Println("File Name:", file)                                                       // Base name of the file
+	fmt.Println("File Type:", aws.ToString(meta.ContentType))                             // File type
+	fmt.Println("Size:", formatFileSize(meta.ContentLength))                              // Length in bytes for regular files
+	fmt.Println("Last Modified:", meta.LastModified.Format("January 2, 2006 3:04:05 PM")) // Last modification time
+
+	printPerformanceResults(meta.ContentLength)
 
 }
