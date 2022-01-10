@@ -2,7 +2,7 @@
 
 ## Command line tool to measure and benchmark file transfer performance
 
-While working on projects where I was uploading / downloading files I often found myself wondering about how long the upload / download alone _should_ be taking. I wanted to know this so I could reason about where potential bottlenecks in performance were coming from.
+While working on projects where I was uploading / downloading files I often found myself wondering about how long the upload / download alone _should_ be taking (back of the envelope based on speed of relevant network). I wanted to know this so I could reason about where potential bottlenecks in performance were coming from.
 
 For example, when trying to understand performance of uploading a media file from a mobile device (raw file upload, file transcoding, converted file upload, converted file download) it would be useful to have an idea how long the upload and download should take depending on what type of network my mobile device is connected to.
 
