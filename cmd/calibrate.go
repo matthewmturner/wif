@@ -6,11 +6,11 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -73,9 +73,9 @@ func createWifDir() error {
 
 func wifSetup() {
 	if wifDirExists() {
-		fmt.Println("wif dir exsits")
+
 	} else {
-		fmt.Println("wif dir does not exist")
+		fmt.Println("~/.wif dir does not exist")
 		err := createWifDir()
 		if err != nil {
 			fmt.Println(err)
@@ -109,42 +109,62 @@ func getSSID() (string, error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(stdout)
 
-	fmt.Println(buf.String())
-
-	tokens := strings.Split(buf.String(), " ")
+	tokens := strings.Split(strings.TrimSpace(buf.String()), " ")
 
 	if len(tokens) != 2 {
-
+		return "", errors.New("Unable to extract SSID from airport resource")
+	} else {
+		return tokens[1], nil
 	}
 }
 
 func runCalibration() error {
-	app := "speedtest"
-	arg0 := "-f"
-	arg1 := "csv"
-	arg2 := "--output-header"
-
-	currentTime := time.Now()
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return err
 	}
 
-	getSSID()
+	ssid, err := getSSID()
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	date := currentTime.Format("20060102")
-	file_name := fmt.Sprintf("%s/.wif/history/speedtest_%s.csv", home, date)
-	fmt.Println("Saving results to ", file_name)
+	file_name := fmt.Sprintf("%s/.wif/speedtest_history/%s.csv", home, ssid)
+
+	var include_header bool
+	if _, err := os.Stat(file_name); err == nil {
+		include_header = false
+	} else {
+		include_header = true
+	}
+
+	app := "speedtest"
+	arg0 := "-f"
+	arg1 := "csv"
+
+	var cmd *exec.Cmd
+	if include_header {
+		arg2 := "--output-header"
+		cmd = exec.Command(app, arg0, arg1, arg2)
+	} else {
+		cmd = exec.Command(app, arg0, arg1)
+	}
 
 	fmt.Println("Calibrating wif")
-	cmd := exec.Command(app, arg0, arg1, arg2)
 	stdout, cal_err := cmd.Output()
 	if cal_err != nil {
 		fmt.Println("speedtest not installed.")
 		fmt.Println("Install speedtest here: https://www.speedtest.net/apps")
 	}
-	// fmt.Println(string(stdout[:]))
-	os.WriteFile(file_name, stdout, 0644)
+
+	fmt.Println("Saving results to", file_name)
+	f, err := os.OpenFile(file_name, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		fmt.Println("Unable to open file")
+	}
+	defer f.Close()
+	f.WriteString(string(stdout))
+
 	return nil
 
 }
