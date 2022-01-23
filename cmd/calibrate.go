@@ -5,9 +5,11 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -82,6 +84,40 @@ func wifSetup() {
 	}
 }
 
+func getSSID() (string, error) {
+	// Only works on Mac
+	app0 := "/System/Library/PrivateFrameworks/Apple80211.framework/Resources/airport"
+	app0_arg0 := "-I"
+	cmd1 := exec.Command(app0, app0_arg0)
+
+	app1 := "grep"
+	app1_arg0 := "-w"
+	app1_arg1 := "SSID"
+	cmd2 := exec.Command(app1, app1_arg0, app1_arg1)
+
+	cmd2.Stdin, _ = cmd1.StdoutPipe()
+	stdout, err := cmd2.StdoutPipe()
+	cmd1.Start()
+
+	if err != nil {
+		fmt.Println(err)
+	}
+	if err := cmd2.Start(); err != nil {
+		fmt.Println(err)
+	}
+
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(stdout)
+
+	fmt.Println(buf.String())
+
+	tokens := strings.Split(buf.String(), " ")
+
+	if len(tokens) != 2 {
+
+	}
+}
+
 func runCalibration() error {
 	app := "speedtest"
 	arg0 := "-f"
@@ -93,8 +129,11 @@ func runCalibration() error {
 	if err != nil {
 		return err
 	}
+
+	getSSID()
+
 	date := currentTime.Format("20060102")
-	file_name := fmt.Sprintf("%s/.wif/speedtest_%s.csv", home, date)
+	file_name := fmt.Sprintf("%s/.wif/history/speedtest_%s.csv", home, date)
 	fmt.Println("Saving results to ", file_name)
 
 	fmt.Println("Calibrating wif")
