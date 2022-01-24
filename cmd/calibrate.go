@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -167,4 +168,40 @@ func runCalibration() error {
 
 	return nil
 
+}
+
+type calibration struct {
+	download int // Speed in Mbps
+	upload   int // Speed in Mbps
+}
+
+func getCalibrationResults() (calibration, error) {
+	ssid, ssid_err := getSSID()
+
+	var calibration_available bool
+	home, home_err := os.UserHomeDir()
+	calibration_path := fmt.Sprintf("%s/.wif/speedtest_history/%s.csv", home, ssid)
+	_, calibration_err := os.Stat(calibration_path)
+	if (ssid_err != nil) || (home_err != nil) || (calibration_err != nil) {
+		fmt.Println("No history on SSID: ", ssid)
+		calibration_available = false
+	} else {
+		calibration_available = true
+	}
+
+	var download, upload int
+	var download_err, upload_err error
+	var calibration_results calibration
+	if calibration_available {
+		calibration_records := readCsvFile(calibration_path)
+		download, download_err = strconv.Atoi(calibration_records[len(calibration_records)-1][5])
+		upload, upload_err = strconv.Atoi(calibration_records[len(calibration_records)-1][6])
+
+	}
+	if (download_err != nil) || (upload_err != nil) {
+		return calibration{}, errors.New("Unable to decode calibration")
+	} else {
+		calibration_results = calibration{download, upload}
+		return calibration_results, nil
+	}
 }

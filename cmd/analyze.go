@@ -138,7 +138,7 @@ func printPerformanceResults(size int64) {
 	// Expected performance
 	fileSize := float32(size)
 
-	fmt.Println("\nExpected Network Speed Information")
+	fmt.Println("\nExpected Network Speed")
 	fmt.Println("5G Download: ", fileSize/(DOWN_5G/8), "seconds")
 	fmt.Println("4G Download: ", fileSize/(DOWN_4G/8), "seconds")
 	fmt.Println("5G Upload: ", fileSize/(UP_5G/8), "seconds")
@@ -146,6 +146,21 @@ func printPerformanceResults(size int64) {
 
 	fmt.Println("Fast Ethernet: ", fileSize/(FAST_ETH/8), "seconds")
 	fmt.Println("Gigabit Ethernet: ", fileSize/(GIGABIT_ETH/8), "seconds")
+
+	result, err := getCalibrationResults()
+	ssid, ssid_err := getSSID()
+
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		if ssid_err != nil {
+			fmt.Println("Calibrated SSID info not available")
+		} else {
+			fmt.Println("\nCalibrated Network Speed: ", ssid)
+			fmt.Println("Download: ", fileSize/(float32(result.download)/8))
+			fmt.Println("Upload: ", fileSize/(float32(result.upload)/8))
+		}
+	}
 }
 
 func printAnalyzeResults(fileStat fs.FileInfo, file string) {
