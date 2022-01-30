@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -33,6 +34,12 @@ const UP_4G = 3_000_000
 // Ethernet Source: https://smallbusiness.chron.com/three-common-ethernet-speeds-69375.html
 const FAST_ETH = 100_000_000
 const GIGABIT_ETH = 1_000_000_000
+
+// Disk Source: https://www.avg.com/en/signal/ssd-hdd-which-is-best
+// Speed in MBps
+const HDD = 22_500_000
+const SSD_SATA = 500_000_000
+const SSD_NVME = 3_500_000_000
 
 // analyzeCmd represents the analyze command
 var analyzeCmd = &cobra.Command{
@@ -138,14 +145,22 @@ func printPerformanceResults(size int64) {
 	// Expected performance
 	fileSize := float32(size)
 
-	fmt.Println("\nExpected Network Speed")
-	fmt.Println("5G Download: ", fileSize/(DOWN_5G/8), "seconds")
-	fmt.Println("4G Download: ", fileSize/(DOWN_4G/8), "seconds")
-	fmt.Println("5G Upload: ", fileSize/(UP_5G/8), "seconds")
-	fmt.Println("4G Upload: ", fileSize/(UP_4G/8), "seconds")
+	writer := tabwriter.NewWriter(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
 
-	fmt.Println("Fast Ethernet: ", fileSize/(FAST_ETH/8), "seconds")
-	fmt.Println("Gigabit Ethernet: ", fileSize/(GIGABIT_ETH/8), "seconds")
+	fmt.Fprintln(writer, "\nWireless Network Speed")
+	fmt.Fprintln(writer, "5G Download: \t", formatTime(fileSize/(DOWN_5G/8)))
+	fmt.Fprintln(writer, "4G Download: \t", formatTime(fileSize/(DOWN_4G/8)))
+	fmt.Fprintln(writer, "5G Upload: \t", formatTime(fileSize/(UP_5G/8)))
+	fmt.Fprintln(writer, "4G Upload: \t", formatTime(fileSize/(UP_4G/8)))
+
+	fmt.Fprintln(writer, "\nWired Network Speed")
+	fmt.Fprintln(writer, "Fast Ethernet: \t", formatTime(fileSize/(FAST_ETH/8)))
+	fmt.Fprintln(writer, "Gb Ethernet: \t", formatTime(fileSize/(GIGABIT_ETH/8)))
+
+	fmt.Fprintln(writer, "\nDisk Speed")
+	fmt.Fprintln(writer, "HDD: \t", formatTime(fileSize/(HDD)))
+	fmt.Fprintln(writer, "SSD SATA: \t", formatTime(fileSize/(SSD_SATA)))
+	fmt.Fprintln(writer, "SSD NVMe: \t", formatTime(fileSize/(SSD_NVME)))
 
 	result, err := getCalibrationResults()
 	ssid, ssid_err := getSSID()
@@ -156,11 +171,12 @@ func printPerformanceResults(size int64) {
 		if ssid_err != nil {
 			fmt.Println("Calibrated SSID info not available")
 		} else {
-			fmt.Println("\nCalibrated Network Speed: ", ssid)
-			fmt.Println("Download: ", fileSize/(float32(result.download)/8))
-			fmt.Println("Upload: ", fileSize/(float32(result.upload)/8))
+			fmt.Fprintln(writer, "\nCalibrated Network Speed: ", ssid)
+			fmt.Fprintln(writer, "Download: \t", formatTime(fileSize/(float32(result.download)/8)))
+			fmt.Fprintln(writer, "Upload: \t", formatTime(fileSize/(float32(result.upload)/8)))
 		}
 	}
+	writer.Flush()
 }
 
 func printAnalyzeResults(fileStat fs.FileInfo, file string) {
