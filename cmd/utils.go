@@ -21,3 +21,7 @@ func readCsvFile(filePath string) [][]string {
 
 	return records
 }
+
+func formatTime(seconds float32) string {
+	return fmt.Sprintf("%f milliseconds", seconds*1_000)
+}
